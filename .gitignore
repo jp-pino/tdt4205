@@ -1,0 +1,3 @@
+*.o
+*.ast
+vsl_programs/**/*.svg
