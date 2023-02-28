@@ -170,7 +170,7 @@ static node_t *simplify_tree(node_t *node) {
     variable = malloc(sizeof(node_t));                   \
     node_init(variable, IDENTIFIER_DATA, identifier, 0); \
   } while (false)
-#define FOR_END_VARIABLE "__FOR_END__"
+#define FOR_END_VARIABLE "123!@#__FOR_END__#@!321"
 
 static node_t *constant_fold_expression(node_t *node) {
   assert(node->type == EXPRESSION);
@@ -245,8 +245,8 @@ static node_t *replace_for_statement(node_t *for_node) {
   node_t *body = for_node->children[3];
 
   // TODO: Task 2.4
-  // Replace the FOR_STATEMENT node, by instead creating the syntax tree of an
-  // equivalent block with a while-statement As an example, the following
+  // Replace the FOR_STATEMENT node, by instead creating the syntax tree of
+  // an equivalent block with a while-statement As an example, the following
   // statement:
   //
   // for i in 5..N+1
@@ -288,7 +288,44 @@ static node_t *replace_for_statement(node_t *for_node) {
   // TODO: The rest is up to you. Good luck!
   // Don't fret if this part gets too cumbersome. Try your best
 
+  // Create While Relation (variable < __FOR_END__)
+  DUPLICATE_VARIABLE(variable);
+  DUPLICATE_VARIABLE(end_variable);
+  NODE(while_relation, RELATION, strdup("<"), 2, variable, end_variable);
+
+  // Create assignment expression
+  DUPLICATE_VARIABLE(variable);
+  int64_t *value = malloc(sizeof(int64_t));
+  *value = 1;
+  NODE(while_assignment_expression_increment, NUMBER_DATA, value, 0);
+  NODE(while_assignment_expression, EXPRESSION, strdup("+"), 2, variable,
+       while_assignment_expression_increment);
+
+  // Create assignment statement
+  DUPLICATE_VARIABLE(variable);
+  NODE(while_assignment_statement, ASSIGNMENT_STATEMENT, NULL, 2, variable,
+       while_assignment_expression);
+
+  // Add while_assignment_statement to body
+  NODE(while_statement_list, STATEMENT_LIST, NULL, 2, body,
+       while_assignment_statement);
+
+  // Create while block containing updated body
+  NODE(while_block, BLOCK, NULL, 1, while_statement_list);
+
+  // Create new while statement
+  NODE(while_statement, WHILE_STATEMENT, NULL, 2, while_relation, while_block);
+
+  // Create statement list containing initialization statements (assingments),
+  // and while statement
+  NODE(statement_list, STATEMENT_LIST, NULL, 3, init_assignment, end_assignment,
+       while_statement);
+
+  // Create block containing variable declation and statement lists
+  NODE(block, BLOCK, NULL, 2, declaration_list, statement_list);
+
   // TODO: Instead of returning the original for_node, destroy it, and return
   // your equivalent block
-  return for_node;
+  node_finalize(for_node);
+  return block;
 }

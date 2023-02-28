@@ -1,4 +1,5 @@
 VSLC := ../src/vslc
+DEBUG ?=
 
 PS2_EXAMPLES := $(patsubst %.vsl, %.ast, $(wildcard ps2-parser/*.vsl))
 PS3_EXAMPLES := $(patsubst %.vsl, %.ast, $(wildcard ps3-simplify/*.vsl))
@@ -21,7 +22,7 @@ ps3-simplify/%.ast: ps3-simplify/%.vsl $(VSLC)
 	$(VSLC) -T < $< > $@
 
 %.svg: %.vsl $(VSLC)
-	GRAPHVIZ_OUTPUT=1 $(VSLC) -T < $< | dot -Tsvg -o $@
+	GRAPHVIZ_OUTPUT=1 $(DEBUG) $(VSLC) -T < $< | dot -Tsvg -o $@
 
 clean:
 	-rm -rf */*.ast */*.svg
